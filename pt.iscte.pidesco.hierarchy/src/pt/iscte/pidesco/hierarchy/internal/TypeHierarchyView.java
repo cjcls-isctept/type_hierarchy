@@ -1,6 +1,10 @@
 package pt.iscte.pidesco.hierarchy.internal;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.CoreException;
@@ -33,6 +37,8 @@ import pt.iscte.pidesco.extensibility.PidescoView;
 import pt.iscte.pidesco.javaeditor.service.JavaEditorListener;
 import pt.iscte.pidesco.javaeditor.service.JavaEditorServices;
 import pt.iscte.pidesco.projectbrowser.model.ClassElement;
+import pt.iscte.pidesco.projectbrowser.model.PackageElement;
+import pt.iscte.pidesco.projectbrowser.model.PackageElement.Visitor;
 import pt.iscte.pidesco.projectbrowser.model.SourceElement;
 import pt.iscte.pidesco.projectbrowser.service.ProjectBrowserListener;
 import pt.iscte.pidesco.projectbrowser.service.ProjectBrowserServices;
@@ -40,8 +46,15 @@ import pt.iscte.pidesco.projectbrowser.service.ProjectBrowserServices;
 public class TypeHierarchyView implements PidescoView {
 
 	private ClassInfoVisitor checkClassInfo;
-	private ClassTreeElement baseClassElement;
+	private ClassTreeElement openedClassElement;
 	private PackageVisitor packageVisitor;
+	private ArrayList<ClassTreeElement> fileList;
+	private ArrayList<File> javaFileList;
+	private Tree tree;
+	/**
+	 *familyMap tem o Elemento, e a lista de filhos
+	 */
+	private HashMap<ClassTreeElement, ClassFamily> familyMap;
 
 	/**
 	 * creates type hierarchy main component
@@ -61,56 +74,130 @@ public class TypeHierarchyView implements PidescoView {
 		ServiceReference<JavaEditorServices> serviceReference2 = context.getServiceReference(JavaEditorServices.class);
 		JavaEditorServices javaServ = context.getService(serviceReference2);
 
-		Tree tree = new Tree(viewArea, SWT.VIRTUAL);
+		tree = new Tree(viewArea, SWT.VIRTUAL);
 		tree.setSize(500, 500);
 
-		baseClassElement = new ClassTreeElement();
+		fileList = new ArrayList<ClassTreeElement>();
+		javaFileList = new ArrayList<File>();
+		openedClassElement = new ClassTreeElement();
+		familyMap = new HashMap<>();
 
-		packageVisitor = new PackageVisitor();
-		//PackageElement root = s.getRootPackage();
-		//root.traverse(new Visitor() {...});
+		// buildHierarchy(projServ.getRootPackage(),fileList);
 
 		// getHierarchy(javaServ);
 
-		
-
 		if (javaServ.getOpenedFile() != (null)) {
-			getOpennedClassInfo(javaServ.getOpenedFile().getPath(), javaServ);
-			updateTree(tree, viewArea);
+			// getOpennedClassInfo(javaServ);
+			buildHierarchy(projServ.getRootPackage(), javaServ);
+			// updateTree(tree, viewArea);
 
 		}
 
 		javaServ.addListener(new JavaEditorListener.Adapter() {
 			@Override
 			public void fileOpened(File file) {
-				tree.removeAll();
-				baseClassElement.clear();
-				getOpennedClassInfo(javaServ.getOpenedFile().getPath(), javaServ);
-				updateTree(tree, viewArea);
-				
+				/*
+				 * tree.removeAll(); openedClassElement.clear(); getOpennedClassInfo(javaServ);
+				 * buildHierarchy(projServ.getRootPackage(), javaServ);
+				 */
+				// updateTree(tree, viewArea);
 
 			}
-
 		});
 
 		projServ.addListener(new ProjectBrowserListener.Adapter() {
 			@Override
 			public void doubleClick(SourceElement element) {
-					
+
 			}
 
 		});
+
+		// extensao(viewArea);
+
+	}
+
+	private void buildHierarchy(PackageElement rootPackage, JavaEditorServices javaServ) {
+		packageVisitor = new PackageVisitor(fileList, javaFileList, tree);
+		rootPackage.traverse(packageVisitor);
+		buildTree(javaServ);
+
+	}
+
+	private void buildTree(JavaEditorServices javaServ) {
+
+		for (ClassTreeElement classTreeElement : fileList) {
+			findparents(javaFileList.get(fileList.indexOf(classTreeElement)), javaServ, classTreeElement);
+
+			if (classTreeElement.getElementName().equals(openedClassElement.getParent().getElementName())) {
+				//System.out.println("lista " + classTreeElement.getElementName());
+				TreeItem treeItem0 = new TreeItem(tree, 0);
+				treeItem0.setText(classTreeElement.getElementName());
+				TreeItem treeItem2 = new TreeItem(treeItem0, 0);
+				treeItem2.setText(openedClassElement.getCompleteName());
+				
+			}
+
+		}
+
+		for (TreeItem item : tree.getItems()) {
+			item.setExpanded(true);
+		}
+
+	}
+
+	private void findparents(File file, JavaEditorServices javaServ, ClassTreeElement element) {
+		// for (File file: javaFileList) {
+		// System.out.println(file.getName());
+
+		parseInfo(file, javaServ, new ClassInfoVisitor(element), element);
+
+		TreeItem item0 = new TreeItem(tree, 0);
+		item0.setText(element.getParent().getElementName());
+		// element.setTreeItem(item0);
+		TreeItem item1 = new TreeItem(item0, 0);
+		item1.setText(element.getElementName());
+		element.setTreeItem(item1);
+		findChildren(element);
+		fillTreeChildren(element, item1);
+		//System.out.println("aaaaa  " + element.getElementName());
+		//System.out.println("bbbbb  " + element.getParent().getElementName());
+
+		// }
+	}
+
+	private void findChildren(ClassTreeElement element) {
+		for (ClassTreeElement classTreeElement : fileList) {
+			if (element.getElementName().equals(classTreeElement.getParent().getElementName())) {
+				element.addChild(classTreeElement);
+				familyMap.put(element, new ClassFamily(element.getChildren(), element.getParent()));
+			}
+		}
+
+	}
+
+	private void fillTreeChildren(ClassTreeElement element, TreeItem itemparent) {
+		for (ClassTreeElement child : element.getChildren()) {
+			TreeItem item2 = new TreeItem(itemparent, 0);
+			item2.setText(child.getElementName());
+			child.setTreeItem(item2);
+			fillTreeChildren(child, item2);
+		}
+		// fillTreeChildren(element, itemparent);
+	}
+
+	private void organizeTree(List<ClassTreeElement> sorted, ClassTreeElement parent) {
 		
-		
-		
-		extensao(viewArea);
+		for (ClassTreeElement element : familyMap.keySet()) {
+			
+		}
 
 	}
 
 	private void extensao(Composite viewArea) {
 		IExtensionRegistry reg = Platform.getExtensionRegistry();
 		IConfigurationElement[] elements = reg.getConfigurationElementsFor("pt.iscte.pidesco.hierarchy.actions");
-		for(IConfigurationElement e : elements) {
+		for (IConfigurationElement e : elements) {
 			String name = e.getAttribute("name");
 			Button b = new Button(viewArea, SWT.PUSH);
 			b.setText(name);
@@ -122,14 +209,14 @@ public class TypeHierarchyView implements PidescoView {
 						action.run(viewArea);
 						viewArea.layout();
 					}
-						
+
 				});
 			} catch (CoreException e1) {
 				e1.printStackTrace();
 			}
-			
+
 		}
-		
+
 	}
 
 	/*
@@ -147,18 +234,16 @@ public class TypeHierarchyView implements PidescoView {
 	 */
 
 	private void updateTree(Tree tree, Composite viewArea) {
-			
-		
-		if (baseClassElement.getParent()!=null) {
+
+		if (openedClassElement.getParent() != null) {
 			TreeItem treeItem0 = new TreeItem(tree, 0);
-			treeItem0.setText(baseClassElement.getParent().getName());
-			
-			
+			treeItem0.setText(openedClassElement.getParent().getCompleteName());
+
 			TreeItem treeItem1 = new TreeItem(treeItem0, 0);
-			treeItem1.setText(baseClassElement.getName());
-		}else {
+			treeItem1.setText(openedClassElement.getCompleteName());
+		} else {
 			TreeItem treeItem1 = new TreeItem(tree, 0);
-			treeItem1.setText(baseClassElement.getName());
+			treeItem1.setText(openedClassElement.getCompleteName());
 		}
 
 		TreeItem[] items = tree.getItems();
@@ -172,71 +257,17 @@ public class TypeHierarchyView implements PidescoView {
 
 	}
 
-	/*private class CheckClassInfo extends ASTVisitor {
+	private void getOpennedClassInfo(JavaEditorServices javaServ) {
+		// System.out.println("getClassInfo.............. " + path);
+		// checkClassInfo = new ClassInfoVisitor(baseClassElement);
+		// javaServ.parseFile(javaServ.getOpenedFile(), checkClassInfo);
+		parseInfo(javaServ.getOpenedFile(), javaServ, checkClassInfo, openedClassElement);
 
-		// visits class/interface declaration
-		// Names of classes/interfaces must start with an
-		// uppercase letter and cannot have underscores;
-		@Override
-		public boolean visit(PackageDeclaration node) {
-			String name = node.getName().toString();
-			System.out.println("Package " + name);
-			baseClassElement.setPackageName(name);
+	}
 
-			return super.visit(node);
-		}
-
-		@Override
-		public boolean visit(TypeDeclaration node) {
-			String name = node.getName().toString();
-			System.out.println("Class " + name);
-			System.out.println("Class " + node.getSuperclassType());
-			
-			String file = node.getParent().toString();
-			if (file.contains("extends")) {
-				String[] splittedFile = file.split("extends ");
-				String[] superclass = splittedFile[1].split("\\{");
-				String superName = superclass[0].trim();
-				System.out.println("Super classeeee " + superName + "  . ");
-				ClassTreeElement parent = new ClassTreeElement();
-				parent.setClassName(superName);
-				baseClassElement.setParent(parent);
-			}
-			baseClassElement.setClassName(name);
-
-			return true;
-		}
-
-		@Override
-		public boolean visit(CompilationUnit node) {
-			// System.out.println("entrou aqui " + node.getPackage());
-			// for (Object type :unit.types()){
-
-			
-			 * TypeDeclaration typeDec = (TypeDeclaration) type; Type superClassType =
-			 * typeDec.getSuperclassType(); TypeDeclaration superClazz; if
-			 * (superClassType.equals(Object.class.getSimpleName())){ return continue;
-			 * }else{ depthOfInheritanceTreeIndex++; superClazz = (TypeDeclaration)
-			 * superClassType.getParent(); return super.visit(superClazz); }
-			 
-			// }/*
-
-			return true;
-		}
-
-		@Override
-		public boolean visit(ClassInstanceCreation node) {
-
-			return true;
-		}
-
-	}*/
-
-	private void getOpennedClassInfo(String path, JavaEditorServices javaServ) {
-		System.out.println("getClassInfo.............. " + path);
-		checkClassInfo = new ClassInfoVisitor(baseClassElement);
-		javaServ.parseFile(javaServ.getOpenedFile(), checkClassInfo);
-
+	private void parseInfo(File file, JavaEditorServices javaServ, ClassInfoVisitor visitor, ClassTreeElement element) {
+		visitor = new ClassInfoVisitor(element);
+		javaServ.parseFile(file, visitor);
 	}
 
 }

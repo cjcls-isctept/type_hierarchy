@@ -3,16 +3,20 @@ package pt.iscte.pidesco.hierarchy.model;
 import java.io.File;
 import java.util.ArrayList;
 
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
+
 public class ClassTreeElement {
 
 	private ClassTreeElement parent;
-	private File file;
-	private boolean isMain;
+
 	private String name="";
 	private String packageName="";
 	private String className;
 	ArrayList<ClassTreeElement> familyUpwards = new ArrayList<ClassTreeElement>();
-	ArrayList<ClassTreeElement> familyDownwards = new ArrayList<ClassTreeElement>();
+	ArrayList<ClassTreeElement> children = new ArrayList<ClassTreeElement>();
+	private Tree familyTree;
+	private TreeItem treeItem;
 
 	
 	
@@ -23,37 +27,44 @@ public class ClassTreeElement {
 	 *         hierarchy view
 	 * 
 	 */
-	public ClassTreeElement(/*ClassTreeElement parent, File file, boolean isMain*/) {
+	public ClassTreeElement(/*ClassTreeElement parent, File file, boolean isMain Tree familyTree*/) {
+		//this.familyTree=familyTree;
 		if (parent == null) {
 			// quer dizer que é root ?
 		}/*
+		
 		this.parent = parent;
 		this.file = file;
 		this.isMain = isMain;*/
 
 	}
+	
+	public void setTreeItem(TreeItem item) {
+		this.treeItem=treeItem;
+		
+	}
 
 	public void addParent(	ClassTreeElement e) {
-		familyUpwards.add(e);
+		
 	}
 
 	public void addChild(	ClassTreeElement e) {
-		familyDownwards.add(e);
+		children.add(e);
 	}
+	
+	
+
+	public ArrayList<ClassTreeElement> getChildren() {
+		return children;
+	}
+
 
 	public void setParent(ClassTreeElement parent) {
 		this.parent = parent;
 	}
 
 
-	public void setFile(File file) {
-		this.file = file;
-	}
 
-
-	public void setMain(boolean isMain) {
-		this.isMain = isMain;
-	}
 	
 	/**
 	 * apends name
@@ -76,12 +87,22 @@ public class ClassTreeElement {
 	}
 
 
-	public String getName() {
+	public String getCompleteName() {
 		return className + " - " + packageName;
+	}
+	
+	public String getElementName() {
+		return className;
 	}
 
 
 	public ClassTreeElement getParent() {
+		if(parent==null) {
+			ClassTreeElement object = new ClassTreeElement();
+			object.setClassName("Object");
+			
+			return object;
+		}
 		return parent;
 	}
 

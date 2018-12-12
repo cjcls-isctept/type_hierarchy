@@ -19,18 +19,13 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 import pt.iscte.pidesco.hierarchy.model.ClassTreeElement;
 
-
-
 public class ClassInfoVisitor extends ASTVisitor {
-	
+
 	ClassTreeElement cElement;
 
-	
-	
 	public ClassInfoVisitor(ClassTreeElement cElement) {
-		this.cElement=cElement;
+		this.cElement = cElement;
 	}
-	
 
 	// visits class/interface declaration
 	// Names of classes/interfaces must start with an
@@ -38,7 +33,7 @@ public class ClassInfoVisitor extends ASTVisitor {
 	@Override
 	public boolean visit(PackageDeclaration node) {
 		String name = node.getName().toString();
-		System.out.println("Package " + name);
+		// System.out.println("Package " + name);
 		cElement.setPackageName(name);
 
 		return super.visit(node);
@@ -47,33 +42,30 @@ public class ClassInfoVisitor extends ASTVisitor {
 	@Override
 	public boolean visit(TypeDeclaration node) {
 		String name = node.getName().toString();
-		String superName = node.getSuperclassType().toString();
+		if (node.getSuperclassType() != null) {
+			String superName = node.getSuperclassType().toString();
 
-		System.out.println("Class " + name);
-		System.out.println("Super Class " + node.getSuperclassType());
-		/*ClassTreeElement parent = new ClassTreeElement();
-		
-		parent.setClassName(superName);
-		cElement.setParent(parent);
-		cElement.setPackageName(node.getSuperclassType().getP);
-		cElement.setClassName(name);*/
-		
+			// System.out.println("Class " + name);
+			// System.out.println("Super Class " + node.getSuperclassType().toString());
+			ClassTreeElement parent = new ClassTreeElement();
+			parent.setClassName(superName);
+			// parent.setPackageName(node.getSuperclassType().getP);
+			cElement.setParent(parent);
+		}
+		// cElement.setPackageName(node.getSuperclassType().getP);
+		cElement.setClassName(name);
+
 		findHierarchy();
 
 		return true;
 	}
 
-	
-
 	private void findHierarchy() {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
 
-	//visit
-	
-
+	// visit
 
 	@Override
 	public boolean visit(CompilationUnit node) {
@@ -99,4 +91,3 @@ public class ClassInfoVisitor extends ASTVisitor {
 	}
 
 }
-
