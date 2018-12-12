@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension-point id="acao" name="acao" schema="schema/actions.exsd"/>
+   <extension
+         id="typeHierarchy"
+         name="Type Hierarchy"
+         point="pt.iscte.pidesco.view">
+      <view
+            class="pt.iscte.pidesco.hierarchy.internal.TypeHierarchyView"
+            icon="icon_type_h.png">
+      </view>
+   </extension>
+
+</plugin>
