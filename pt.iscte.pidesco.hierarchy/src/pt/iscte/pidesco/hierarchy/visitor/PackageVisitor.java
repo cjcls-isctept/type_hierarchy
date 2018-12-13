@@ -2,6 +2,7 @@ package pt.iscte.pidesco.hierarchy.visitor;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.swt.SWT;
@@ -18,11 +19,14 @@ public class PackageVisitor implements Visitor{
 	private ArrayList<ClassTreeElement> fileList;
 	private ArrayList<File> javaFileList;
 	private Tree tree;
+	private HashMap<ClassTreeElement, ArrayList<ClassTreeElement>>  parentsMap;
 	
-	public PackageVisitor(ArrayList<ClassTreeElement> fileList, ArrayList<File> javaFileList, Tree tree) {
+	public PackageVisitor(ArrayList<ClassTreeElement> fileList, ArrayList<File> javaFileList, Tree tree, 
+			HashMap<ClassTreeElement, ArrayList<ClassTreeElement>>  parentsMap) {
 		this.fileList=fileList;
 		this.javaFileList=javaFileList;
 		this.tree=tree;
+		this.parentsMap=parentsMap;
 	}
 
 	@Override
@@ -46,6 +50,8 @@ public class PackageVisitor implements Visitor{
 			//elem.setParent(elemParent);
 			//System.out.println("este é o ficheiro" + classElement.getFile().getName());
 			
+			
+
 			elem.setClassName(name);
 			javaFileList.add(classElement.getFile());
 			fileList.add(elem);
