@@ -3,7 +3,7 @@ package pt.iscte.pidesco.hierarchy.internal;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import org.eclipse.swt.widgets.List;
 import java.util.Map;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
@@ -17,6 +17,7 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
@@ -48,12 +49,13 @@ public class TypeHierarchyView implements PidescoView {
 	private ArrayList<File> javaFileList;
 	private Tree tree;
 
-    private Color BLUE ;
-    private Color BLACK;    
-    private Font FONT_HIGHLIGHTED ;    
-    private Font FONT_NORMAL ;
-    
-    
+	private Color BLUE;
+	private Color BLACK;
+	private Font FONT_HIGHLIGHTED;
+	private Font FONT_NORMAL;
+
+
+
 	/**
 	 * familyMap tem o PAI como Key, e o par Filho, lista de filhos dele
 	 */
@@ -71,8 +73,8 @@ public class TypeHierarchyView implements PidescoView {
 	 */
 	@Override
 	public void createContents(Composite viewArea, Map<String, Image> imageMap) {
-		// viewArea.setLayout(new RowLayout(SWT.VERTICAL));
-		BundleContext context = Activator.getContext();
+		viewArea.setLayout(new FillLayout(SWT.VERTICAL));
+		BundleContext context = TypeHierarchyActivator.getContext();
 
 		ServiceReference<ProjectBrowserServices> serviceReference = context
 				.getServiceReference(ProjectBrowserServices.class);
@@ -82,19 +84,34 @@ public class TypeHierarchyView implements PidescoView {
 		JavaEditorServices javaServ = context.getService(serviceReference2);
 
 		tree = new Tree(viewArea, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-		//// tree.setSize(490, 460);
-		// viewArea.setSize(400, 430);
-
 		fileList = new ArrayList<ClassTreeElement>();
 		javaFileList = new ArrayList<File>();
 		openedClassElement = new ClassTreeElement();
 		familyMap = new HashMap<>();
 		parentsMap = new HashMap<>();
-	    BLUE = tree.getDisplay().getSystemColor(SWT.COLOR_BLUE);
-	    BLACK = tree.getDisplay().getSystemColor(SWT.COLOR_BLACK);    
-	    FONT_HIGHLIGHTED = new Font(tree.getDisplay(), "Tahoma", 9, SWT.BOLD);    
-	    FONT_NORMAL = new Font(tree.getDisplay(), "Tahoma", 9, SWT.NORMAL);
-		// buildHierarchy(projServ.getRootPackage(),fileList);
+		BLUE = tree.getDisplay().getSystemColor(SWT.COLOR_BLUE);
+		BLACK = tree.getDisplay().getSystemColor(SWT.COLOR_BLACK);
+		FONT_HIGHLIGHTED = new Font(tree.getDisplay(), "Tahoma", 9, SWT.BOLD);
+		FONT_NORMAL = new Font(tree.getDisplay(), "Tahoma", 9, SWT.NORMAL);
+
+
+		//Button b = new Button(viewArea, SWT.NONE);
+		
+		//// tree.setSize(490, 460);
+		// viewArea.setSize(400, 430);
+
+		// EXTENSION
+		// Composite extensionArea = new Composite(viewArea, SWT.NONE);
+		// extensionArea.setLayoutData(new FillLayout(SWT.VERTICAL));
+		/*List list = new List(viewArea, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+		list.setItems (new String [] {"Item 1", "Item2"});
+		List list2 = new List(viewArea, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
+		list2.setItems (new String [] {"Item 1", "Item2"});
+		 */
+		// extensionArea.ad
+		// EXT
+
+		 //buildHierarchy(projServ.getRootPackage(), javaServ);
 
 		// getHierarchy(javaServ);
 
@@ -104,11 +121,48 @@ public class TypeHierarchyView implements PidescoView {
 			// updateTree(tree, viewArea);
 
 		}
+
+		addOpeningClosingListener(javaServ);
+
+
+
+		addDoubleClickTreeListener(tree, javaServ);
 		
+		
+		highlightSelected(javaServ);
+		// extensao(viewArea);
+
+	}
+
+	private void addDoubleClickTreeListener(Tree tree, JavaEditorServices javaServ) {
+		tree.addListener(SWT.MouseDoubleClick, new Listener() {
+
+			@Override
+			public void handleEvent(Event event) {
+
+				Point point = new Point(event.x, event.y);
+
+				TreeItem item = tree.getItem(point);
+
+				File f;
+				for (File file : javaFileList) {
+					if (file.getName().split("\\.")[0].equals(item.getText())) {
+						javaServ.openFile(file);
+						//System.out.println("duplo clique!!!!!!!!!!!! " + item.getText());
+					}
+				}
+				// javaServ.openFile(file);
+
+			}
+		});
+		
+	}
+
+	private void addOpeningClosingListener(JavaEditorServices javaServ) {
 		javaServ.addListener(new JavaEditorListener.Adapter() {
 			@Override
 			public void fileOpened(File file) {
-				
+
 				highlightSelected(javaServ);
 				/*
 				 * tree.removeAll(); openedClassElement.clear(); getOpennedClassInfo(javaServ);
@@ -117,48 +171,16 @@ public class TypeHierarchyView implements PidescoView {
 				// updateTree(tree, viewArea);
 
 			}
-			
+
 			@Override
 			public void fileClosed(File file) {
-				
-					highlightSelected(javaServ);
-				
+
+				highlightSelected(javaServ);
+
 			}
 		});
 
-		projServ.addListener(new ProjectBrowserListener.Adapter() {
-			@Override
-			public void doubleClick(SourceElement element) {
-
-			}
-
-		});
-		for (TreeItem item : tree.getItems()) {
-			item.setExpanded(true);
-		}
 		
-		tree.addListener(SWT.MouseDoubleClick, new Listener() {
-			
-			@Override
-			public void handleEvent(Event event) {
-				
-				Point point = new Point(event.x, event.y);
-				
-		        TreeItem item = tree.getItem(point);
-		        
-		        File f;
-		        for (File file : javaFileList) {
-					if(file.getName().split("\\.")[0].equals(item.getText())) {
-						javaServ.openFile(file);
-						System.out.println("duplo clique!!!!!!!!!!!! " + item.getText());
-					}
-				}
-		        //javaServ.openFile(file);
-		        
-			}
-		});
-		highlightSelected(javaServ);
-		// extensao(viewArea);
 
 	}
 
@@ -189,54 +211,47 @@ public class TypeHierarchyView implements PidescoView {
 			 */
 		}
 		fillTree();
-		//printTree();
-		
+		// printTree();
 
 	}
 
 	private void highlightSelected(JavaEditorServices javaServ) {
 		getOpennedClassInfo(javaServ);
-		
+
 		for (TreeItem item2 : tree.getItems()) {
-			if(openedClassElement.getElementName().equals(item2.getText())) {
+			if (openedClassElement.getElementName().equals(item2.getText())) {
 				item2.setText(item2.getText());
 				item2.setForeground(BLUE);
 				item2.setFont(FONT_HIGHLIGHTED);
-			}else {
+			} else {
 				item2.setText(item2.getText());
 				item2.setForeground(BLACK);
 				item2.setFont(FONT_NORMAL);
 			}
 			iterateTree(item2);
-			
-			
-		
+
 		}
 	}
-	
-	
 
 	private void iterateTree(TreeItem item) {
-		
-	    
-		
+
 		for (TreeItem item2 : item.getItems()) {
-			//System.out.println("------------"+openedClassElement.getElementName());
-			if(openedClassElement.getElementName().equals(item2.getText().trim())) {
-				//System.out.println("------------"+openedClassElement.getElementName());
+			// System.out.println("------------"+openedClassElement.getElementName());
+			if (openedClassElement.getElementName().equals(item2.getText().trim())) {
+				// System.out.println("------------"+openedClassElement.getElementName());
 				item2.setText(item2.getText());
 				item2.setForeground(BLUE);
 				item2.setFont(FONT_HIGHLIGHTED);
-			}else {
+			} else {
 				item2.setText(item2.getText());
 				item2.setForeground(BLACK);
 				item2.setFont(FONT_NORMAL);
-				//item2.setForeground(tree.getDisplay().getSystemColor(SWT.COLOR_BLUE));
-				//item2.setFont(new Font(tree.getDisplay(), "Tahoma", 9, SWT.Pl));
+				// item2.setForeground(tree.getDisplay().getSystemColor(SWT.COLOR_BLUE));
+				// item2.setFont(new Font(tree.getDisplay(), "Tahoma", 9, SWT.Pl));
 			}
 			iterateTree(item2);
 		}
-		
+
 	}
 
 	private void buildTree(JavaEditorServices javaServ) {
@@ -254,7 +269,7 @@ public class TypeHierarchyView implements PidescoView {
 			}
 		}
 
-		//printTree();
+		// printTree();
 
 	}
 
@@ -360,7 +375,7 @@ public class TypeHierarchyView implements PidescoView {
 
 	private void parseInfo(File file, JavaEditorServices javaServ, ClassInfoVisitor visitor, ClassTreeElement element) {
 		visitor = new ClassInfoVisitor(element);
-		if(file!=null)
+		if (file != null)
 			javaServ.parseFile(file, visitor);
 	}
 

@@ -3,7 +3,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Hierarchy
 Bundle-SymbolicName: pt.iscte.pidesco.hierarchy;singleton:=true
 Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: pt.iscte.pidesco.hierarchy.internal.Activator
+Bundle-Activator: pt.iscte.pidesco.hierarchy.internal.TypeHierarchyActivator
 Require-Bundle: org.eclipse.core.runtime,
  pt.iscte.pidesco;bundle-version="0.1.0",
  org.eclipse.swt;bundle-version="3.108.0",
