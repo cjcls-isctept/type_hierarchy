@@ -22,4 +22,5 @@ Import-Package: org.eclipse.core.resources,
  pt.iscte.pidesco.javaeditor.service,
  pt.iscte.pidesco.projectbrowser.model,
  pt.iscte.pidesco.projectbrowser.service
-Export-Package: pt.iscte.pidesco.hierarchy.model
+Export-Package: pt.iscte.pidesco.hierarchy.extensibility,
+ pt.iscte.pidesco.hierarchy.model

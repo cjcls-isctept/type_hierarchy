@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 
+import pt.iscte.pidesco.hierarchy.extensibility.ExtInterface;
 import pt.iscte.pidesco.hierarchy.model.ClassTreeElement;
 import pt.iscte.pidesco.hierarchy.visitor.ClassInfoVisitor;
 import pt.iscte.pidesco.hierarchy.visitor.PackageVisitor;
@@ -130,7 +131,8 @@ public class TypeHierarchyView implements PidescoView {
 		
 		
 		highlightSelected(javaServ);
-		// extensao(viewArea);
+		
+		extension(viewArea);
 
 	}
 
@@ -144,9 +146,8 @@ public class TypeHierarchyView implements PidescoView {
 
 				TreeItem item = tree.getItem(point);
 
-				File f;
 				for (File file : javaFileList) {
-					if (file.getName().split("\\.")[0].equals(item.getText())) {
+					if (file!=null && file.getName().split("\\.")[0].equals(item.getText())) {
 						javaServ.openFile(file);
 						//System.out.println("duplo clique!!!!!!!!!!!! " + item.getText());
 					}
@@ -164,10 +165,10 @@ public class TypeHierarchyView implements PidescoView {
 			public void fileOpened(File file) {
 
 				highlightSelected(javaServ);
-				/*
-				 * tree.removeAll(); openedClassElement.clear(); getOpennedClassInfo(javaServ);
-				 * buildHierarchy(projServ.getRootPackage(), javaServ);
-				 */
+				
+				 // tree.removeAll(); openedClassElement.clear(); getOpennedClassInfo(javaServ);
+				  //buildHierarchy(projServ.getRootPackage(), javaServ);
+				 
 				// updateTree(tree, viewArea);
 
 			}
@@ -340,27 +341,21 @@ public class TypeHierarchyView implements PidescoView {
 
 	}
 
-	private void extensao(Composite viewArea) {
+	private void extension(Composite viewArea) {
 		IExtensionRegistry reg = Platform.getExtensionRegistry();
-		IConfigurationElement[] elements = reg.getConfigurationElementsFor("pt.iscte.pidesco.hierarchy.actions");
-		for (IConfigurationElement e : elements) {
+		IConfigurationElement[] elements = reg.getConfigurationElementsFor("pt.iscte.pidesco.hierarchy.class_info");
+		for(IConfigurationElement e : elements) {
 			String name = e.getAttribute("name");
-			Button b = new Button(viewArea, SWT.PUSH);
-			b.setText(name);
-			try {
-				DemoAction action = (DemoAction) e.createExecutableExtension("class");
-				b.addSelectionListener(new SelectionAdapter() {
-					@Override
-					public void widgetSelected(SelectionEvent e) {
-						action.run(viewArea);
-						viewArea.layout();
-					}
 
-				});
+			try {
+				ExtInterface action = (ExtInterface) e.createExecutableExtension("class");
+				action.run(viewArea);
+				viewArea.layout();
+
 			} catch (CoreException e1) {
 				e1.printStackTrace();
 			}
-
+			
 		}
 
 	}

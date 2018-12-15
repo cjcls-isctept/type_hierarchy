@@ -3,7 +3,7 @@
 <schema targetNamespace="pt.iscte.pidesco.hierarchy" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
       <appinfo>
-         <meta.schema plugin="pt.iscte.pidesco.hierarchy" id="actions" name="actions"/>
+         <meta.schema plugin="pt.iscte.pidesco.hierarchy" id="class_info_extPoint" name="class_info_extPoint"/>
       </appinfo>
       <documentation>
          [Enter description of this extension point.]
