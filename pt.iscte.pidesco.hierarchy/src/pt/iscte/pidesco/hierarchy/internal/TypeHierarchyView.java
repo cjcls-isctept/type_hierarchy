@@ -115,33 +115,37 @@ public class TypeHierarchyView implements PidescoView {
 		 //buildHierarchy(projServ.getRootPackage(), javaServ);
 
 		// getHierarchy(javaServ);
-
+		
+		Composite viewAreaChild = new Composite(viewArea, 0);
+		viewAreaChild.setLayout(new FillLayout(SWT.VERTICAL));
 		if (javaServ.getOpenedFile() != (null)) {
 			// getOpennedClassInfo(javaServ);
 			buildHierarchy(projServ.getRootPackage(), javaServ);
+			extension(viewAreaChild, javaServ);
 			// updateTree(tree, viewArea);
 
 		}
 
-		addOpeningClosingListener(javaServ);
+		addOpeningClosingListener(viewAreaChild, javaServ);
 
 
 
-		addDoubleClickTreeListener(tree, javaServ);
+		//addDoubleClickTreeListener(tree, viewArea,  javaServ);
 		
 		
 		highlightSelected(javaServ);
 		
-		extension(viewArea);
+		
 
 	}
+	
 
-	private void addDoubleClickTreeListener(Tree tree, JavaEditorServices javaServ) {
+	private void addDoubleClickTreeListener(Tree tree, Composite viewArea, JavaEditorServices javaServ) {
 		tree.addListener(SWT.MouseDoubleClick, new Listener() {
 
 			@Override
 			public void handleEvent(Event event) {
-
+				
 				Point point = new Point(event.x, event.y);
 
 				TreeItem item = tree.getItem(point);
@@ -159,13 +163,13 @@ public class TypeHierarchyView implements PidescoView {
 		
 	}
 
-	private void addOpeningClosingListener(JavaEditorServices javaServ) {
+	private void addOpeningClosingListener(Composite viewArea, JavaEditorServices javaServ) {
 		javaServ.addListener(new JavaEditorListener.Adapter() {
 			@Override
 			public void fileOpened(File file) {
 
 				highlightSelected(javaServ);
-				
+				extension(viewArea, javaServ);
 				 // tree.removeAll(); openedClassElement.clear(); getOpennedClassInfo(javaServ);
 				  //buildHierarchy(projServ.getRootPackage(), javaServ);
 				 
@@ -176,8 +180,12 @@ public class TypeHierarchyView implements PidescoView {
 			@Override
 			public void fileClosed(File file) {
 
-				highlightSelected(javaServ);
+				//highlightSelected(javaServ);
 
+				/**
+				 * isto ta a dar barraca
+				 */
+				
 			}
 		});
 
@@ -341,15 +349,17 @@ public class TypeHierarchyView implements PidescoView {
 
 	}
 
-	private void extension(Composite viewArea) {
+	private void extension(Composite viewArea, JavaEditorServices javaServ) {
 		IExtensionRegistry reg = Platform.getExtensionRegistry();
 		IConfigurationElement[] elements = reg.getConfigurationElementsFor("pt.iscte.pidesco.hierarchy.class_info");
+		Tree tree_copy = tree;
 		for(IConfigurationElement e : elements) {
 			String name = e.getAttribute("name");
 
 			try {
 				ExtInterface action = (ExtInterface) e.createExecutableExtension("class");
-				action.run(viewArea);
+				action.run(viewArea, javaServ.getOpenedFile(), tree_copy);
+				//updateOrCreate(viewArea, javaServ, action, tree_copy, option);
 				viewArea.layout();
 
 			} catch (CoreException e1) {
@@ -359,6 +369,17 @@ public class TypeHierarchyView implements PidescoView {
 		}
 
 	}
+	
+	void updateOrCreate(Composite viewArea, JavaEditorServices javaServ, ExtInterface action, Tree tree_copy, String option){
+		if(option.equals("create")) {
+			action.run(viewArea, javaServ.getOpenedFile(), tree_copy);
+		}
+		if(option.equals("update")) {
+			action.update(viewArea, javaServ.getOpenedFile(), tree_copy);
+		}
+		
+	}
+	
 
 	private void getOpennedClassInfo(JavaEditorServices javaServ) {
 		// System.out.println("getClassInfo.............. " + path);
