@@ -15,9 +15,9 @@ public class TypeHierarchyServicesImpl implements TypeHierarchyServices{
 	
 	private HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap;
 	
-	public TypeHierarchyServicesImpl(HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap) {
+	/*public TypeHierarchyServicesImpl(HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap) {
 		this.parentsMap=parentsMap;
-	}
+	}*/
 	
 	@Override
 	public void addListener(TypeHierarchyListener listener) {
@@ -30,11 +30,18 @@ public class TypeHierarchyServicesImpl implements TypeHierarchyServices{
 		TypeHierarchyActivator.getInstance().removeListener(listener);
 		
 	}
-
+	
+	
+	/**
+	 * 
+	 * 
+	 */
 	@Override
 	public HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> getDataFromTree() {
-		
-		return parentsMap;
+		return TypeHierarchyView.getParentsMap();
+		//TypeHierarchyActivator.getInstance().getParentsMap();
+		//return null;
+		//return parentsMap;
 	}
 
 

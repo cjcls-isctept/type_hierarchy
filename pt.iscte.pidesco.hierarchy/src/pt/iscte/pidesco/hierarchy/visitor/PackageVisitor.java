@@ -61,26 +61,8 @@ public class PackageVisitor implements Visitor{
 		
 	}
 
-	private void addToTree(ClassTreeElement elem) {
 
-		
-	}
 
 	
-	/*
-	 * 
-	 * portanto agora é criar um visitor para os packages como o stor disse
-	 * ProjectBrowserServices s = ...
-
-PackageElement root = s.getRootPackage();
-
-root.traverse(new Visitor() {...});
-
-
-desta forma, obténs a package raiz (default), e fazes passar um visitor por toda a hierarquia de ficheiros.
-	 * 
-	 * 
-	 * 
-	 * 
-	 */
+	
 }

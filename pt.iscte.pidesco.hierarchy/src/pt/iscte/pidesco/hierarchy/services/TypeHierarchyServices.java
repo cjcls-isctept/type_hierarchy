@@ -21,7 +21,7 @@ public interface TypeHierarchyServices {
 	void removeListener(TypeHierarchyListener listener);
 
 	/**
-	 * Returns the Type Hierarchy main tree data in the form of <Parent, Children>
+	 * Returns the Type Hierarchy main tree data in the form of <Parent, Children> HashMap
 	 * 
 	 * @return HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> 
 	 */

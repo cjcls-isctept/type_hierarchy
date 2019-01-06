@@ -15,7 +15,6 @@ public class ClassTreeElement {
 	private String className;
 	ArrayList<ClassTreeElement> familyUpwards = new ArrayList<ClassTreeElement>();
 	ArrayList<ClassTreeElement> children = new ArrayList<ClassTreeElement>();
-	private Tree familyTree;
 	private TreeItem treeItem;
 
 	

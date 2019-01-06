@@ -21,6 +21,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
@@ -32,7 +33,6 @@ import pt.iscte.pidesco.hierarchy.extensibility.ExtInterface;
 import pt.iscte.pidesco.hierarchy.model.ClassTreeElement;
 import pt.iscte.pidesco.hierarchy.visitor.ClassInfoVisitor;
 import pt.iscte.pidesco.hierarchy.visitor.PackageVisitor;
-import pt.iscte.pidesco.demo.extensibility.DemoAction;
 import pt.iscte.pidesco.extensibility.PidescoView;
 import pt.iscte.pidesco.javaeditor.service.JavaEditorListener;
 import pt.iscte.pidesco.javaeditor.service.JavaEditorServices;
@@ -60,11 +60,11 @@ public class TypeHierarchyView implements PidescoView {
 	/**
 	 * familyMap tem o PAI como Key, e o par Filho, lista de filhos dele
 	 */
-	private HashMap<ClassTreeElement, ClassFamily> familyMap;
+	//private HashMap<ClassTreeElement, ClassFamily> familyMap;
 	/**
 	 * parentsMap tem Uma classe como Key, e uma lista de filhos dele como value
 	 */
-	private HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap;
+	private static HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap;
 
 	/**
 	 * creates Hierarchy main component
@@ -88,7 +88,7 @@ public class TypeHierarchyView implements PidescoView {
 		fileList = new ArrayList<ClassTreeElement>();
 		javaFileList = new ArrayList<File>();
 		openedClassElement = new ClassTreeElement();
-		familyMap = new HashMap<>();
+		//familyMap = new HashMap<>();
 		parentsMap = new HashMap<>();
 		BLUE = tree.getDisplay().getSystemColor(SWT.COLOR_BLUE);
 		BLACK = tree.getDisplay().getSystemColor(SWT.COLOR_BLACK);
@@ -96,25 +96,7 @@ public class TypeHierarchyView implements PidescoView {
 		FONT_NORMAL = new Font(tree.getDisplay(), "Tahoma", 9, SWT.NORMAL);
 
 
-		//Button b = new Button(viewArea, SWT.NONE);
-		
-		//// tree.setSize(490, 460);
-		// viewArea.setSize(400, 430);
 
-		// EXTENSION
-		// Composite extensionArea = new Composite(viewArea, SWT.NONE);
-		// extensionArea.setLayoutData(new FillLayout(SWT.VERTICAL));
-		/*List list = new List(viewArea, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-		list.setItems (new String [] {"Item 1", "Item2"});
-		List list2 = new List(viewArea, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL);
-		list2.setItems (new String [] {"Item 1", "Item2"});
-		 */
-		// extensionArea.ad
-		// EXT
-
-		 //buildHierarchy(projServ.getRootPackage(), javaServ);
-
-		// getHierarchy(javaServ);
 		
 		Composite viewAreaChild = new Composite(viewArea, 0);
 		viewAreaChild.setLayout(new FillLayout(SWT.VERTICAL));
@@ -137,6 +119,11 @@ public class TypeHierarchyView implements PidescoView {
 		
 		
 
+	}
+	
+	static HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> getParentsMap(){
+		 HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap_copy = parentsMap;
+		return parentsMap_copy;
 	}
 	
 
@@ -163,6 +150,12 @@ public class TypeHierarchyView implements PidescoView {
 		
 	}
 
+	
+	/**
+	 * Adds the listeners of closing/opening to the java editor
+	 * @param viewArea
+	 * @param javaServ
+	 */
 	private void addOpeningClosingListener(Composite viewArea, JavaEditorServices javaServ) {
 		javaServ.addListener(new JavaEditorListener.Adapter() {
 			@Override
@@ -193,6 +186,11 @@ public class TypeHierarchyView implements PidescoView {
 
 	}
 
+	/**
+	 * Builds the main hierarchy of the tree, using a package visitor
+	 * @param rootPackage
+	 * @param javaServ
+	 */
 	private void buildHierarchy(PackageElement rootPackage, JavaEditorServices javaServ) {
 		packageVisitor = new PackageVisitor(fileList, javaFileList, tree, parentsMap);
 		rootPackage.traverse(packageVisitor);
@@ -223,7 +221,11 @@ public class TypeHierarchyView implements PidescoView {
 		// printTree();
 
 	}
-
+	
+	/**
+	 * Highlights the opened file in the tree with a different color
+	 * @param javaServ
+	 */
 	private void highlightSelected(JavaEditorServices javaServ) {
 		getOpennedClassInfo(javaServ);
 
@@ -242,6 +244,10 @@ public class TypeHierarchyView implements PidescoView {
 		}
 	}
 
+	/**
+	 * iterates recursively in the tree in order to find the element to be highlighted
+	 * @param item
+	 */
 	private void iterateTree(TreeItem item) {
 
 		for (TreeItem item2 : item.getItems()) {
@@ -263,6 +269,10 @@ public class TypeHierarchyView implements PidescoView {
 
 	}
 
+	/**
+	 * builds the tree structure
+	 * @param javaServ
+	 */
 	private void buildTree(JavaEditorServices javaServ) {
 
 		for (ClassTreeElement classTreeElement : fileList) {
@@ -297,25 +307,37 @@ public class TypeHierarchyView implements PidescoView {
 
 	}
 
+	
+	/**
+	 * For each file found in the project, finds its parents
+	 * @param file
+	 * @param javaServ
+	 * @param element
+	 */
 	private void findparents(File file, JavaEditorServices javaServ, ClassTreeElement element) {
 
 		parseInfo(file, javaServ, new ClassInfoVisitor(element), element);
 		findChildren(element);
 
 	}
-
+	
+	/**
+	 * Fills the parentsMap HashMap with (Parent, Children) values
+	 * @param element
+	 */
 	private void findChildren(ClassTreeElement element) {
 		for (ClassTreeElement classTreeElement : fileList) {
 			if (element.getElementName().equals(classTreeElement.getParent().getElementName())) {
 				element.addChild(classTreeElement);
 				parentsMap.put(element, element.getChildren());
-				familyMap.put(element.getParent(), new ClassFamily(element.getChildren(), element));
+				//familyMap.put(element.getParent(), new ClassFamily(element.getChildren(), element));
 			}
 
 		}
 
 	}
 
+	
 	private void fillTree() {
 		TreeItem root = new TreeItem(tree, 0);
 		root.setText("Object");
@@ -349,16 +371,24 @@ public class TypeHierarchyView implements PidescoView {
 
 	}
 
+	/**
+	 * Finds the extensions 
+	 * @param viewArea
+	 * @param javaServ
+	 */
 	private void extension(Composite viewArea, JavaEditorServices javaServ) {
 		IExtensionRegistry reg = Platform.getExtensionRegistry();
 		IConfigurationElement[] elements = reg.getConfigurationElementsFor("pt.iscte.pidesco.hierarchy.class_info");
-		Tree tree_copy = tree;
+		//Tree tree_copy = tree;
+		HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap_copy= parentsMap;
 		for(IConfigurationElement e : elements) {
 			String name = e.getAttribute("name");
-
+			
 			try {
 				ExtInterface action = (ExtInterface) e.createExecutableExtension("class");
-				action.run(viewArea, javaServ.getOpenedFile(), tree_copy);
+				clearArea(viewArea);
+				action.run(viewArea, javaServ.getOpenedFile(), parentsMap_copy);
+				
 				//updateOrCreate(viewArea, javaServ, action, tree_copy, option);
 				viewArea.layout();
 
@@ -370,25 +400,31 @@ public class TypeHierarchyView implements PidescoView {
 
 	}
 	
-	void updateOrCreate(Composite viewArea, JavaEditorServices javaServ, ExtInterface action, Tree tree_copy, String option){
-		if(option.equals("create")) {
-			action.run(viewArea, javaServ.getOpenedFile(), tree_copy);
-		}
-		if(option.equals("update")) {
-			action.update(viewArea, javaServ.getOpenedFile(), tree_copy);
+	
+	void clearArea(Composite viewArea){
+		Control[] children = viewArea.getChildren();
+		for (Control control : children) {
+			control.dispose();
 		}
 		
 	}
 	
-
+	/**
+	 * finds the info of the class opened in the Java Editor
+	 * @param javaServ
+	 */
 	private void getOpennedClassInfo(JavaEditorServices javaServ) {
-		// System.out.println("getClassInfo.............. " + path);
-		// checkClassInfo = new ClassInfoVisitor(baseClassElement);
-		// javaServ.parseFile(javaServ.getOpenedFile(), checkClassInfo);
 		parseInfo(javaServ.getOpenedFile(), javaServ, checkClassInfo, openedClassElement);
 
 	}
 
+	/**
+	 * 
+	 * @param file
+	 * @param javaServ
+	 * @param visitor
+	 * @param element
+	 */
 	private void parseInfo(File file, JavaEditorServices javaServ, ClassInfoVisitor visitor, ClassTreeElement element) {
 		visitor = new ClassInfoVisitor(element);
 		if (file != null)

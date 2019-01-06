@@ -1,5 +1,7 @@
 package pt.iscte.pidesco.hierarchy.internal;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,6 +13,7 @@ import org.osgi.framework.ServiceReference;
 import org.osgi.framework.ServiceRegistration;
 
 import pt.iscte.pidesco.extensibility.PidescoServices;
+import pt.iscte.pidesco.hierarchy.model.ClassTreeElement;
 import pt.iscte.pidesco.hierarchy.services.TypeHierarchyListener;
 import pt.iscte.pidesco.hierarchy.services.TypeHierarchyServices;
 
@@ -23,6 +26,7 @@ public class TypeHierarchyActivator implements BundleActivator {
 	private ServiceRegistration<TypeHierarchyServices> service;
 	private PidescoServices pidescoServices;
 	private Tree tree;
+	private HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap;
 	
 
 
@@ -34,13 +38,16 @@ public class TypeHierarchyActivator implements BundleActivator {
 	 * (non-Javadoc)
 	 * @see org.osgi.framework.BundleActivator#start(org.osgi.framework.BundleContext)
 	 */
-	public void start(BundleContext bundleContext) throws Exception {
-		instance = this;/*
+	public void start(BundleContext context) throws Exception {
+		
+		this.context=context;
+		instance = this;
 		listeners = new HashSet<TypeHierarchyListener>();
+		//service = context.registerService(TypeHierarchyServices.class, new TypeHierarchyServicesImpl(parentsMap), null);
 		service = context.registerService(TypeHierarchyServices.class, new TypeHierarchyServicesImpl(), null);
 		ServiceReference<PidescoServices> ref = context.getServiceReference(PidescoServices.class);
-		pidescoServices = context.getService(ref);*/
-		TypeHierarchyActivator.context = bundleContext;
+		pidescoServices = context.getService(ref);
+		TypeHierarchyActivator.context = context;
 		
 	}
 
@@ -64,6 +71,11 @@ public class TypeHierarchyActivator implements BundleActivator {
 
 	public void addListener(TypeHierarchyListener listener) {
 		listeners.add(listener);
+		
+	}
+
+	public void getParentsMap() {
+		// TODO Auto-generated method stub
 		
 	}
 
