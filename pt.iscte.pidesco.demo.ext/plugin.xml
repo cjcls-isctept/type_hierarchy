@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+
+   <extension
+         id="class_info"
+         name="class_info"
+         point="pt.iscte.pidesco.hierarchy.class_info">
+      <action
+            class="pt.iscte.pidesco.demo.ext.TestAction2"
+            name="Test Action2">
+      </action>
+   </extension>
+   
+
+   
+   
+</plugin>

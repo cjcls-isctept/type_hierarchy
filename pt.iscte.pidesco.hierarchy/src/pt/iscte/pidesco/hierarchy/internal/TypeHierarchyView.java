@@ -372,14 +372,14 @@ public class TypeHierarchyView implements PidescoView {
 		IExtensionRegistry reg = Platform.getExtensionRegistry();
 		IConfigurationElement[] elements = reg.getConfigurationElementsFor("pt.iscte.pidesco.hierarchy.class_info");
 		//Tree tree_copy = tree;
-		HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap_copy= parentsMap;
+		//HashMap<ClassTreeElement, ArrayList<ClassTreeElement>> parentsMap_copy= parentsMap;
 		for(IConfigurationElement e : elements) {
 			String name = e.getAttribute("name");
 			
 			try {
 				ExtInterface action = (ExtInterface) e.createExecutableExtension("class");
 				clearArea(viewArea);
-				action.run(viewArea, javaServ.getOpenedFile(), parentsMap_copy);
+				action.run(viewArea, javaServ.getOpenedFile(), parentsMap);
 				
 				//updateOrCreate(viewArea, javaServ, action, tree_copy, option);
 				viewArea.layout();
